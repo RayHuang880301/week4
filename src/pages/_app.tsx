@@ -5,6 +5,10 @@ import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { configureChains, createConfig, sepolia, WagmiConfig } from "wagmi";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ChakraProvider } from "@chakra-ui/react";
+
+const queryClient = new QueryClient();
 
 const { chains, publicClient } = configureChains(
   [sepolia],
@@ -28,10 +32,14 @@ const wagmiConfig = createConfig({
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
-        <Component {...pageProps} />;
-      </RainbowKitProvider>
-    </WagmiConfig>
+    <ChakraProvider>
+      <QueryClientProvider client={queryClient}>
+        <WagmiConfig config={wagmiConfig}>
+          <RainbowKitProvider chains={chains}>
+            <Component {...pageProps} />;
+          </RainbowKitProvider>
+        </WagmiConfig>
+      </QueryClientProvider>
+    </ChakraProvider>
   );
 }
