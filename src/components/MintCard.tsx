@@ -5,6 +5,7 @@ import {
   useAccount,
   useContractRead,
   useContractWrite,
+  useNetwork,
   usePrepareContractWrite,
   useWaitForTransaction,
 } from "wagmi";
@@ -14,15 +15,21 @@ import { useTotalSupply } from "@/hooks/useTotalSupply";
 import { useBalanceOf } from "@/hooks/useBalanceOf";
 import { Spinner } from "@chakra-ui/react";
 import { useToast } from "@chakra-ui/react";
+import { getContractAddr } from "@/utils/getContractAddr";
 
 export default function MintCard() {
   const toast = useToast();
   const { address } = useAccount();
+  const { chain } = useNetwork();
   const { totalSupply, isLoadingTotalSupply, refetchTotalSupply } =
-    useTotalSupply();
-  const { balance, isLoadingBalance, refetchBalance } = useBalanceOf(address);
+    useTotalSupply(chain);
+  const { balance, isLoadingBalance, refetchBalance } = useBalanceOf(
+    chain,
+    address
+  );
+  const contractAddr = getContractAddr(chain);
   const { config } = usePrepareContractWrite({
-    address: CONFIG.NFT_CONTRACT_ADDRESS,
+    address: contractAddr,
     abi: nftABI,
     functionName: "mint",
   });
@@ -39,6 +46,12 @@ export default function MintCard() {
   } = useWaitForTransaction({
     hash: mintTx?.hash,
   });
+
+  useEffect(() => {
+    refetchTotalSupply();
+    refetchBalance();
+    reset();
+  }, [chain]);
 
   useEffect(() => {
     if (isSuccessMint) {
